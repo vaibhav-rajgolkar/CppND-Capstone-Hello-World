@@ -2,6 +2,8 @@
 #define RENDERER_H
 
 #include "SDL.h"
+#include "SDL2/SDL_image.h"
+#include "player.h"
 
 
 class Renderer {
@@ -10,10 +12,12 @@ class Renderer {
            const std::size_t grid_width, const std::size_t grid_height);
   ~Renderer();
 
-  void Render(/* Snake const snake, SDL_Point const &food */);
+  void Render(Player* player);
   void UpdateWindowTitle(int score, int fps);
-  SDL_Texture *loadTexture(char *filename);
   void blit(SDL_Texture *texture, int x, int y);
+  SDL_Texture *loadTexture(std::string filename);
+
+  SDL_Renderer* getSdlRenderer() const { return sdl_renderer; }
 
  private:
   SDL_Window *sdl_window;

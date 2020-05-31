@@ -1,6 +1,5 @@
 #include <iostream>
 #include "renderer.h"
-#include "SDL2/SDL_image.h"
 
 Renderer::Renderer(const std::size_t screen_width,
                    const std::size_t screen_height,
@@ -42,14 +41,19 @@ Renderer::~Renderer() {
   SDL_Quit();
 }
 
-void Renderer::Render(/* Snake const snake, SDL_Point const &food */) {
+void Renderer::Render(Player* player) {
   SDL_Rect block;
   block.w = screen_width / grid_width;
   block.h = screen_height / grid_height;
 
   // Clear screen
+  //SDL_SetRenderTarget(sdl_renderer, player->getTexture());
   SDL_SetRenderDrawColor(sdl_renderer, 96, 128, 255, 255/* 0x1E, 0x1E, 0x1E, 0xFF */);
   SDL_RenderClear(sdl_renderer);
+
+  // Render player
+  blit(player->getTexture(), player->getXPosition(), player->getYPosition());
+
 
   /* // Render food
   SDL_SetRenderDrawColor(sdl_renderer, 0xFF, 0xCC, 0x00, 0xFF);
@@ -84,24 +88,26 @@ void Renderer::UpdateWindowTitle(int score, int fps) {
   SDL_SetWindowTitle(sdl_window, title.c_str());
 }
 
-SDL_Texture *Renderer::loadTexture(char *filename)
-{
-	SDL_Texture *texture;
-
-	SDL_LogMessage(SDL_LOG_CATEGORY_APPLICATION, SDL_LOG_PRIORITY_INFO, "Loading %s", filename);
-
-	texture = IMG_LoadTexture(sdl_renderer, filename);
-
-	return texture;
-}
-
 void Renderer::blit(SDL_Texture *texture, int x, int y)
 {
 	SDL_Rect dest;
 	
 	dest.x = x;
 	dest.y = y;
-	SDL_QueryTexture(texture, NULL, NULL, &dest.w, &dest.h);
+	int retval = SDL_QueryTexture(texture, NULL, NULL, &dest.w, &dest.h);
+  //std::cout<<"Blit w, h : return : "<<dest.w<<" : "<<dest.h<<" : "<<retval<<" : "<<SDL_GetError()<<std::endl;
 	
 	SDL_RenderCopy(sdl_renderer, texture, NULL, &dest);
+}
+
+SDL_Texture *Renderer::loadTexture(std::string filename)
+{
+	SDL_Texture *texture;
+
+	SDL_LogMessage(SDL_LOG_CATEGORY_APPLICATION, SDL_LOG_PRIORITY_INFO, "Loading %s", filename.c_str());
+
+	texture = IMG_LoadTexture(sdl_renderer, filename.c_str());
+  //std::cout<<"Texture : "<<&texture<<std::endl;
+
+	return texture;
 }

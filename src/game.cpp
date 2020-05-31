@@ -19,13 +19,15 @@ void Game::Run(Controller const &controller, Renderer &renderer,
   int frame_count = 0;
   bool running = true;
 
+  player = std::make_unique<Player>(100, 100, renderer.loadTexture("../graphics/player.png"));
+
   while (running) {
     frame_start = SDL_GetTicks();
 
     // Input, Update, Render - the main game loop.
-    controller.HandleInput(running/* , snake */);
+    controller.HandleInput(running, player.get());
     Update();
-    renderer.Render(/* snake, food */);
+    renderer.Render(player.get());
 
     frame_end = SDL_GetTicks();
 
@@ -51,11 +53,11 @@ void Game::Run(Controller const &controller, Renderer &renderer,
 }
 
 void Game::Update() {
-  /* if (!snake.alive) return;
+   if (!player->isPlayerAlive()) return;
 
-  snake.Update();
+  player->UpdatePlayerPosition();
 
-  int new_x = static_cast<int>(snake.head_x);
+/*   int new_x = static_cast<int>(snake.head_x);
   int new_y = static_cast<int>(snake.head_y);
 
   // Check if there's food over here
@@ -65,7 +67,7 @@ void Game::Update() {
     // Grow snake and increase speed.
     snake.GrowBody();
     snake.speed += 0.02;
-  } */
+  }  */
 }
 
 int Game::GetScore() const { return score; }

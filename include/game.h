@@ -2,9 +2,12 @@
 #define GAME_H
 
 #include <random>
+#include <memory>
 #include "SDL.h"
 #include "controller.h"
 #include "renderer.h"
+#include "player.h"
+
 
 class Game {
  public:
@@ -23,7 +26,8 @@ class Game {
   std::uniform_int_distribution<int> random_w;
   std::uniform_int_distribution<int> random_h;
 
-  int score{0};
+  std::unique_ptr<Player> player;
+   int score{0};
 
  /*  void PlaceFood(); */
   void Update();
