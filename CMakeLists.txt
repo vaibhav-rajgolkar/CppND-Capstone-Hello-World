@@ -16,6 +16,7 @@ find_package(SDL2_image REQUIRED)
 include_directories(${SDL2_IMAGE_INCLUDE_DIRS} src)
 
 # Find all executables
+include_directories(include)
 file(GLOB project_SRCS src/*.cpp)
 
 add_executable(SpaceShootGame ${project_SRCS})
