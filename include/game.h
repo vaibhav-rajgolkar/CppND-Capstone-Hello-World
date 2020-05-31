@@ -27,6 +27,7 @@ class Game {
   std::uniform_int_distribution<int> random_h;
 
   std::unique_ptr<Player> player;
+  std::unique_ptr<Player> bullet;
    int score{0};
 
  /*  void PlaceFood(); */

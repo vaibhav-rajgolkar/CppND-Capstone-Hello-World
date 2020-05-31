@@ -41,7 +41,7 @@ Renderer::~Renderer() {
   SDL_Quit();
 }
 
-void Renderer::Render(Player* player) {
+void Renderer::Render(Player* player, Player* bullet) {
   SDL_Rect block;
   block.w = screen_width / grid_width;
   block.h = screen_height / grid_height;
@@ -51,8 +51,20 @@ void Renderer::Render(Player* player) {
   SDL_SetRenderDrawColor(sdl_renderer, 96, 128, 255, 255/* 0x1E, 0x1E, 0x1E, 0xFF */);
   SDL_RenderClear(sdl_renderer);
 
+  if(bullet->getXPosition() >= screen_width)
+  {
+    bullet->setHealth(false);
+    player->setFireBullet(false);
+  }
+
   // Render player
   blit(player->getTexture(), player->getXPosition(), player->getYPosition());
+
+ // Render Bullet
+  if(bullet->getHealth())
+  {
+    blit(bullet->getTexture(), bullet->getXPosition(), bullet->getYPosition());
+  }
 
 
   /* // Render food

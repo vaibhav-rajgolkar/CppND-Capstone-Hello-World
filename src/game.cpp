@@ -19,7 +19,8 @@ void Game::Run(Controller const &controller, Renderer &renderer,
   int frame_count = 0;
   bool running = true;
 
-  player = std::make_unique<Player>(100, 100, renderer.loadTexture("../graphics/player.png"));
+  player = std::make_unique<Player>(100, 100, renderer.loadTexture("../graphics/player.png"), true);
+  bullet = std::make_unique<Player>(100, 100, renderer.loadTexture("../graphics/playerBullet.png"), false);
 
   while (running) {
     frame_start = SDL_GetTicks();
@@ -27,7 +28,7 @@ void Game::Run(Controller const &controller, Renderer &renderer,
     // Input, Update, Render - the main game loop.
     controller.HandleInput(running, player.get());
     Update();
-    renderer.Render(player.get());
+    renderer.Render(player.get(), bullet.get());
 
     frame_end = SDL_GetTicks();
 
@@ -53,9 +54,21 @@ void Game::Run(Controller const &controller, Renderer &renderer,
 }
 
 void Game::Update() {
-   if (!player->isPlayerAlive()) return;
+   if (!player->getHealth()) return;
 
   player->UpdatePlayerPosition();
+  
+  if(player->isBulletFired() && !bullet->getHealth())
+  {
+    bullet->setPositionX(player->getXPosition());
+    bullet->setPositionY(player->getYPosition());
+    bullet->setDeltaX(16);
+    bullet->setDeltaY(0);
+    bullet->setHealth(true);
+  }
+
+  bullet->setPositionX(bullet->getXPosition() + bullet->getDeltaX());
+  bullet->setPositionY(bullet->getYPosition() + bullet->getDeltaY());
 
 /*   int new_x = static_cast<int>(snake.head_x);
   int new_y = static_cast<int>(snake.head_y);

@@ -12,12 +12,14 @@ class Renderer {
            const std::size_t grid_width, const std::size_t grid_height);
   ~Renderer();
 
-  void Render(Player* player);
+  void Render(Player* player, Player* bullet);
   void UpdateWindowTitle(int score, int fps);
   void blit(SDL_Texture *texture, int x, int y);
   SDL_Texture *loadTexture(std::string filename);
 
   SDL_Renderer* getSdlRenderer() const { return sdl_renderer; }
+  std::size_t getScreenWidth() const { return screen_width; }
+  std::size_t getScreenHeight() const { return screen_height; }
 
  private:
   SDL_Window *sdl_window;
