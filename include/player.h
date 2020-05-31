@@ -2,9 +2,17 @@
 #define PLAYER_H
 
 #include <string>
+#include <memory>
+#include <vector>
 #include "SDL.h"
 #include <iostream>
 
+namespace
+{
+    constexpr int PLAYER_SPEED = 4;
+    constexpr int BULLET_SPEED = 16;
+    constexpr int SCREEN_WIDTH = 1280;
+}
 class Player
 {
 public:
@@ -17,46 +25,54 @@ public:
     texture_(texture),
     health_(health)
     {
+        SDL_QueryTexture(this->texture_, NULL, NULL, &this->width_, &this->height_);
     }
 
     ~Player() 
     {
-        SDL_DestroyTexture(texture_);
     }
 
-    int getXPosition() const { return xPosition_; }
-    int getYPosition() const { return yPosition_; }
-    int getDeltaX() const { return xDelta_; }
-    int getDeltaY() const { return yDelta_; }
+    float getXPosition() const { return xPosition_; }
+    float getYPosition() const { return yPosition_; }
+    float getDeltaX() const { return xDelta_; }
+    float getDeltaY() const { return yDelta_; }
     SDL_Texture* getTexture() const { return texture_; }
     Direction getDirection() const { return direction_; }
     bool getHealth() const { return health_; }
     bool isBulletFired() const { return fireBullet_; }
 
-    void setPositionX(int x) { xPosition_ = x; }
-    void setPositionY(int y) { yPosition_ = y; }
-    void setDeltaX(int x) { xDelta_ = x; }
-    void setDeltaY(int y) { yDelta_ = y; }
+    void setPositionX(float x) { xPosition_ = x; }
+    void setPositionY(float y) { yPosition_ = y; }
+    void setDeltaX(float x) { xDelta_ = x; }
+    void setDeltaY(float y) { yDelta_ = y; }
     void setHealth(bool health) { health_ = health; }
     void setDirection(Direction dir) { direction_ = dir; }
     void setUpdatePosition(bool flag) { updatePosition_ = flag; }
     void setFireBullet(bool flag) { fireBullet_ = flag; }
 
-    void UpdatePlayerPosition();
-
+    void updatePlayer(SDL_Texture* bulletTexture);
+    void generateBullet(SDL_Texture* bulletTexture);
+    void fireBullets();
+    std::vector<std::unique_ptr<Player>> bullets_{};
 
 private:
-    int xPosition_;
-	int yPosition_;
-    SDL_Texture *texture_;
+    float xPosition_;
+	float yPosition_;
+    float xDelta_;
+    float yDelta_;
+
+    int width_;
+    int height_;
+
+    int reload_{0};
+
+    SDL_Texture* texture_;
+
     Direction direction_ = Direction::kUp;
-    int speed_{4};
+
     bool health_{false};
     bool updatePosition_{false};
     bool fireBullet_{false};
-
-    int xDelta_;
-    int yDelta_;
 };
 
 #endif //PLAYER_H

@@ -3,11 +3,13 @@
 #include "SDL.h"
 
 Game::Game(std::size_t grid_width, std::size_t grid_height)
-    : /* snake(grid_width, grid_height), */
-      engine(dev()),
+    : engine(dev()),
       random_w(0, static_cast<int>(grid_width)),
-      random_h(0, static_cast<int>(grid_height)) {
-/*   PlaceFood(); */
+      random_h(0, static_cast<int>(grid_height)) 
+      { }
+
+Game::~Game()
+{
 }
 
 void Game::Run(Controller const &controller, Renderer &renderer,
@@ -19,16 +21,15 @@ void Game::Run(Controller const &controller, Renderer &renderer,
   int frame_count = 0;
   bool running = true;
 
-  player = std::make_unique<Player>(100, 100, renderer.loadTexture("../graphics/player.png"), true);
-  bullet = std::make_unique<Player>(100, 100, renderer.loadTexture("../graphics/playerBullet.png"), false);
+  player = std::make_unique<Player>(100, 100, renderer.getPlayerTexture(), true);
 
   while (running) {
     frame_start = SDL_GetTicks();
 
     // Input, Update, Render - the main game loop.
     controller.HandleInput(running, player.get());
-    Update();
-    renderer.Render(player.get(), bullet.get());
+    Update(renderer);
+    renderer.Render(player.get());
 
     frame_end = SDL_GetTicks();
 
@@ -53,35 +54,12 @@ void Game::Run(Controller const &controller, Renderer &renderer,
   }
 }
 
-void Game::Update() {
+void Game::Update(Renderer &renderer) {
    if (!player->getHealth()) return;
 
-  player->UpdatePlayerPosition();
-  
-  if(player->isBulletFired() && !bullet->getHealth())
-  {
-    bullet->setPositionX(player->getXPosition());
-    bullet->setPositionY(player->getYPosition());
-    bullet->setDeltaX(16);
-    bullet->setDeltaY(0);
-    bullet->setHealth(true);
-  }
-
-  bullet->setPositionX(bullet->getXPosition() + bullet->getDeltaX());
-  bullet->setPositionY(bullet->getYPosition() + bullet->getDeltaY());
-
-/*   int new_x = static_cast<int>(snake.head_x);
-  int new_y = static_cast<int>(snake.head_y);
-
-  // Check if there's food over here
-  if (food.x == new_x && food.y == new_y) {
-    score++;
-    PlaceFood();
-    // Grow snake and increase speed.
-    snake.GrowBody();
-    snake.speed += 0.02;
-  }  */
+  player->updatePlayer(renderer.getPlayerBulletTexture());
+  player->fireBullets();
 }
 
 int Game::GetScore() const { return score; }
-int Game::GetSize() const { return 0;/* return snake.size; */ }
+int Game::GetSize() const { return 0; }

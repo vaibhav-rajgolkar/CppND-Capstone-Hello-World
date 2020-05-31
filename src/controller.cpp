@@ -40,7 +40,6 @@ void Controller::HandleInput(bool &running , Player* player) const {
         
         case SDLK_LCTRL:
           player->setFireBullet(true);
-          std::cout<<"left control pressed\n";
           break;
       }
     }
@@ -56,7 +55,7 @@ void Controller::HandleInput(bool &running , Player* player) const {
           break;
         
         case SDLK_LCTRL:
-          //player->setFireBullet(false);
+          player->setFireBullet(false);
           break;
       }
     }
