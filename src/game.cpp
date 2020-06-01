@@ -1,19 +1,65 @@
 #include "game.h"
 #include <iostream>
 #include <algorithm>
+#include <fstream>
+#include <string>
+#include <sstream>
 #include "SDL.h"
 
 #include "constants.h"
 
 Game::Game(const Audio* audio)
-:audio_(audio)
+:audio_(audio),
+currentScore_(0)
 {
+  ReadHighScoreFromCard();
 }
 
 Game::~Game()
 {
+  UpdateHighScoreToCard();
   enimies_.erase(enimies_.begin(), enimies_.end());
   audio_ = nullptr;
+}
+
+Game::Game(Game&& source)
+:player_(std::move(source.player_)),
+enimies_(std::move(source.enimies_))
+{
+  audio_ = source.audio_;
+  currentScore_ = source.currentScore_;
+  highScore_ = source.highScore_;
+  enemySpawnTimer_ = source.enemySpawnTimer_;
+  resetStageTime_ = source.resetStageTime_;
+
+  source.audio_ = nullptr;
+  source.currentScore_ = 0;
+  source.highScore_ = 0;
+  source.enemySpawnTimer_ = 0;
+  source.resetStageTime_ = 0;
+}
+
+Game& Game::operator=(Game&& source)
+{
+  if(this == &source)
+    return *this;
+
+  audio_ = source.audio_;
+  currentScore_ = source.currentScore_;
+  highScore_ = source.highScore_;
+  enemySpawnTimer_ = source.enemySpawnTimer_;
+  resetStageTime_ = source.resetStageTime_;
+  player_ = std::move(source.player_);
+  enimies_ = std::move(source.enimies_);
+
+  source.audio_ = nullptr;
+  source.currentScore_ = 0;
+  source.highScore_ = 0;
+  source.enemySpawnTimer_ = 0;
+  source.resetStageTime_ = 0;
+
+  return *this;
+
 }
 
 void Game::ResetGame(const Renderer& renderer)
@@ -22,6 +68,7 @@ void Game::ResetGame(const Renderer& renderer)
   enimies_.erase(enimies_.begin(), enimies_.end());
   enemySpawnTimer_ = 0;
   resetStageTime_ = Constant::kFPS * 2;
+  currentScore_ = 0;
 }
 
 void Game::Run(const Controller& controller, const Renderer& renderer,
@@ -53,7 +100,7 @@ void Game::Run(const Controller& controller, const Renderer& renderer,
 
     // After every second, update the window title.
     if (frame_end - title_timestamp >= 1000) {
-      renderer.UpdateWindowTitle(score, frame_count);
+      renderer.UpdateWindowTitle(currentScore_, highScore_);
       frame_count = 0;
       title_timestamp = frame_end;
     }
@@ -71,15 +118,18 @@ void Game::Update(const Renderer& renderer)
 {
   //std::cout<<"resetStageTime : "<<resetStageTime_<<std::endl;
 
-  if (!player_->getHealth() && --resetStageTime_ <= 0)
+  if (!player_->IsEntityAlive() && --resetStageTime_ <= 0)
   {
+    //update highscore
+    highScore_ = currentScore_ > highScore_ ? currentScore_ : highScore_;
+
     ResetGame(renderer);
     audio_->PlayMusic(false);
   } 
     
-  player_->updatePlayer(renderer.GetPlayerBulletTexture());
+  player_->UpdatePlayerMoves(renderer.GetPlayerBulletTexture());
   FireBullets(player_.get());
-  player_->clipPlayer();
+  player_->ClipPlayer();
 
   UpdateEnimies();
   FireEnimyBullets(renderer);
@@ -91,8 +141,8 @@ void Game::UpdateEnimies()
 {
   for(auto& enimy : enimies_)
   {
-    enimy->setPositionX(enimy->getXPosition() + enimy->getDeltaX());
-    enimy->setPositionY(enimy->getYPosition() + enimy->getDeltaY());
+    enimy->SetPositionX(enimy->GetPositionX() + enimy->GetDeltaX());
+    enimy->SetPositionY(enimy->GetPositionY() + enimy->GetDeltaY());
   }
   // Delete enimy objects which crosses screen or hit by player bullet
 	enimies_.erase(
@@ -101,7 +151,7 @@ void Game::UpdateEnimies()
             enimies_.end(),
             [&] (std::unique_ptr<Entity> const& enimy)
             {   
-                return (enimy->getXPosition() < -enimy->getWidth() || enimy->getHealth() == 0);
+                return (enimy->GetPositionX() < -enimy->GetWidth() || enimy->IsEntityAlive() == 0);
             }),
         enimies_.end()
         );
@@ -112,8 +162,8 @@ void Game::FireBullets(Entity* entity)
 {
 	for(auto& bullet : entity->bullets_)
 	{
-		bullet->setPositionX(bullet->getXPosition() + bullet->getDeltaX());
-    bullet->setPositionY(bullet->getYPosition() + bullet->getDeltaY());
+		bullet->SetPositionX(bullet->GetPositionX() + bullet->GetDeltaX());
+    bullet->SetPositionY(bullet->GetPositionY() + bullet->GetDeltaY());
 	}
 
 	// Delete bullet objects which crosses screen
@@ -123,8 +173,8 @@ void Game::FireBullets(Entity* entity)
             entity->bullets_.end(),
             [&] (std::unique_ptr<Entity> const& p)
             {   
-                return (p->getXPosition() > Constant::kScreenWidth || p->getYPosition() > Constant::kScreenHeight || p->getXPosition() < -p->getWidth() 
-                || p->getYPosition() < -p->getHeight() || IsBulletHitEntity(p.get(), entity));
+                return (p->GetPositionX() > Constant::kScreenWidth || p->GetPositionY() > Constant::kScreenHeight || p->GetPositionX() < -p->GetWidth() 
+                || p->GetPositionY() < -p->GetHeight() || IsBulletHitEntity(p.get(), entity));
             }),
         entity->bullets_.end()
         );
@@ -132,29 +182,29 @@ void Game::FireBullets(Entity* entity)
 
 bool Game::IsBulletHitEntity(Entity* bullet, Entity* entity)
 {
-  if(entity->getEntityType() == Entity::EntityType::kPlayer)
+  if(entity->GetEntityType() == Entity::EntityType::kPlayer)
   {
   for(auto& enimy : enimies_)
   {
-    if(Collision(bullet->getXPosition(), bullet->getYPosition(), bullet->getWidth(), bullet->getHeight(), 
-                    enimy->getXPosition(), enimy->getYPosition(), enimy->getWidth(), enimy->getHeight()))
+    if(Collision(bullet->GetPositionX(), bullet->GetPositionY(), bullet->GetWidth(), bullet->GetHeight(), 
+                    enimy->GetPositionX(), enimy->GetPositionY(), enimy->GetWidth(), enimy->GetHeight()))
     {
       audio_->PlaySound(Audio::Sound::kSoundEnemyDie, Audio::Channel::kChannleAny);
-      bullet->setHealth(false);
-      enimy->setHealth(false);
-      score++;
+      bullet->SetHealth(false);
+      enimy->SetHealth(false);
+      currentScore_++;
       return true;
     }
   }
   }
-  else if(entity->getEntityType() == Entity::EntityType::kEnimy)
+  else if(entity->GetEntityType() == Entity::EntityType::kEnimy)
   {
-    if(Collision(bullet->getXPosition(), bullet->getYPosition(), bullet->getWidth(), bullet->getHeight(), 
-                    player_->getXPosition(), player_->getYPosition(), player_->getWidth(), player_->getHeight()))
+    if(Collision(bullet->GetPositionX(), bullet->GetPositionY(), bullet->GetWidth(), bullet->GetHeight(), 
+                    player_->GetPositionX(), player_->GetPositionY(), player_->GetWidth(), player_->GetHeight()))
     {
       audio_->PlaySound(Audio::Sound::kSoundPlayerDie, Audio::Channel::kChannelPlayer);
-      bullet->setHealth(false);
-      player_->setHealth(false);
+      bullet->SetHealth(false);
+      player_->SetHealth(false);
       return true;
     }
   }
@@ -172,7 +222,7 @@ void Game::SpawnEnimies(const Renderer& renderer)
     std::uniform_int_distribution<int> randomGenerator(0, 90);
   
     std::unique_ptr<Entity> enemy = std::make_unique<Entity>(Constant::kScreenWidth, randomHeightGenerator(engine), renderer.GetEnemyTexture(), true, Entity::EntityType::kEnimy);
-		enemy->setDeltaX(-(1 + (rand() % 2)));
+		enemy->SetDeltaX(-(1 + (rand() % 2)));
     enimies_.push_back(std::move(enemy));
 
     enemySpawnTimer_ = 60 + randomGenerator(engine);
@@ -183,7 +233,7 @@ void Game::FireEnimyBullets(const Renderer& renderer)
 {
   for(auto& enimy : enimies_)
   {
-    enimy->generateEnimyBullet(renderer.GetEnemyBulletTexture(), player_.get());
+    enimy->GenerateEnemyBullet(renderer.GetEnemyBulletTexture(), player_.get());
     FireBullets(enimy.get());
   }
 
@@ -194,4 +244,32 @@ int Game::Collision(int x1, int y1, int w1, int h1, int x2, int y2, int w2, int 
 	return (std::max(x1, x2) < std::min(x1 + w1, x2 + w2)) && (std::max(y1, y2) < std::min(y1 + h1, y2 + h2));
 }
 
-int Game::GetScore() const { return score; }
+  void Game::UpdateHighScoreToCard()
+  {
+   std::ofstream filestream ("../score/scorecard.txt", std::ios::trunc);
+  if (filestream.is_open())
+  {
+    filestream << "highscore " << std::to_string(highScore_);
+    filestream.close();
+  }
+  }
+
+  int Game::ReadHighScoreFromCard()
+  {
+    std::ifstream filestream("../score/scorecard.txt");
+    if(filestream.is_open());
+    {
+      std::string line{}, token{};
+      int value;
+
+      std::getline(filestream, line);
+      std::istringstream linestream(line);
+      linestream >> token >> value;
+
+      if(token == "highscore")
+        {
+          //std::cout<<"highscore read from file : "<<value<<std::endl;
+          highScore_ = value;
+        }
+    }
+  }

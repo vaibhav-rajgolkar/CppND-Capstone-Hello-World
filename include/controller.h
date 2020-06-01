@@ -13,6 +13,9 @@ class Controller {
   Controller(const Controller& source) = delete;
   Controller& operator=(const Controller& source) = delete;
 
+  Controller(Controller&& source);
+  Controller& operator=(Controller&& source);
+
   void HandleInput(bool& running, Entity* player) const;
 
  private:

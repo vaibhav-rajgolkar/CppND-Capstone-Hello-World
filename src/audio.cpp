@@ -26,6 +26,25 @@ Audio::~Audio()
 	}
 }
 
+Audio::Audio(Audio&& source)
+: sounds_(std::move(sounds_))
+{
+    music_ = source.music_;
+    source.music_ = nullptr;
+}
+
+Audio& Audio::operator=(Audio&& source)
+{
+    if(this == &source)
+        return *this;
+        
+    sounds_ = std::move(source.sounds_);
+    music_ = source.music_;
+    source.music_ = nullptr;
+    return *this;
+}
+
+
 void Audio::LoadSounds()
 {
 	sounds_[static_cast<int>(Audio::Sound::kSoundPlayerFire)] = Mix_LoadWAV("../sound/334227__jradcoolness__laser.ogg");

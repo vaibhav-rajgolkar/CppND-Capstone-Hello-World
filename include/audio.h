@@ -32,6 +32,9 @@ public:
     Audio(const Audio& source) = delete;
     Audio& operator=(const Audio& source) = delete;
 
+    Audio(Audio&& source);
+    Audio& operator=(Audio&& source);
+
 
 void PlayMusic(int loop) const;
 void PlaySound(Sound sound_id, Channel channel) const;

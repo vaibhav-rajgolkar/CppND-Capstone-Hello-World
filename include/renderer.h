@@ -15,6 +15,9 @@ class Renderer {
   Renderer(const Renderer& source) = delete;
   Renderer& operator=(const Renderer& source) = delete;
 
+  Renderer(Renderer&& source);
+  Renderer& operator=(Renderer&& source);
+
   void Render(const Entity* player, const std::vector<std::unique_ptr<Entity>>& enemies) const;
   void UpdateWindowTitle(int score, int fps) const;
 
@@ -36,9 +39,9 @@ class Renderer {
   SDL_Texture* enemyBulletTexture_;
   SDL_Texture* backGroundTexture_;
 
-    void RenderBackground() const;
-      void Blit(SDL_Texture *texture, int x, int y) const;
-      SDL_Texture *LoadTexture(std::string filename) const;
+  void RenderBackground() const;
+  void Blit(SDL_Texture *texture, int x, int y) const;
+  SDL_Texture *LoadTexture(std::string filename) const;
 };
 
 #endif

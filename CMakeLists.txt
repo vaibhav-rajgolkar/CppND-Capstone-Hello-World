@@ -5,7 +5,7 @@ add_definitions(-std=c++17)
 set(CXX_FLAGS "-Wall")
 set(CMAKE_CXX_FLAGS, "${CXX_FLAGS}")
 
-project(SpaceShootGame)
+project(SpaceWar)
 
 set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${CMAKE_SOURCE_DIR}/cmake/")
 
@@ -22,6 +22,6 @@ include_directories(${SDL2_MIXER_INCLUDE_DIRS} src)
 include_directories(include)
 file(GLOB project_SRCS src/*.cpp)
 
-add_executable(SpaceShootGame ${project_SRCS})
+add_executable(SpaceWar ${project_SRCS})
 string(STRIP ${SDL2_LIBRARIES} SDL2_LIBRARIES)
-target_link_libraries(SpaceShootGame ${SDL2_LIBRARIES} ${SDL2_IMAGE_LIBRARIES} ${SDL2_MIXER_LIBRARIES})
+target_link_libraries(SpaceWar ${SDL2_LIBRARIES} ${SDL2_IMAGE_LIBRARIES} ${SDL2_MIXER_LIBRARIES})

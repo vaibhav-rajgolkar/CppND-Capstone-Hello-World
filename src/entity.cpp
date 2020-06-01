@@ -3,7 +3,141 @@
 #include "constants.h"
 #include "entity.h"
 
-void Entity::updatePlayer(SDL_Texture* bulletTexture)
+    Entity::Entity(int x, int y, SDL_Texture* texture, bool health, EntityType type)
+    :xPosition_(x),
+    yPosition_(y),
+    texture_(texture),
+    health_(health),
+    type_(type)
+    {
+        SDL_QueryTexture(this->texture_, NULL, NULL, &this->width_, &this->height_);
+    }
+
+    Entity::~Entity() 
+    {
+        bullets_.erase(bullets_.begin(), bullets_.end());
+        texture_ = NULL;
+    }
+
+
+    Entity::Entity(const Entity& source)
+	{
+		xPosition_ = source.xPosition_;
+	    yPosition_ = source.yPosition_;
+        xDelta_ = source.xDelta_;
+        yDelta_ = source.yDelta_;
+
+        width_ = source.width_;
+        height_ = source.height_;
+
+        reload_ = source.reload_;
+
+        texture_ = source.texture_;
+
+       direction_ = source.direction_;
+       type_ = source.type_;
+
+       health_ = source.health_;
+       updatePosition_ = source.updatePosition_;
+       fireBullet_ = source.fireBullet_;
+	}
+
+    Entity& Entity::operator=(const Entity& source)
+	{
+		if(this == &source)
+			return *this;
+
+		xPosition_ = source.xPosition_;
+	    yPosition_ = source.yPosition_;
+        xDelta_ = source.xDelta_;
+        yDelta_ = source.yDelta_;
+
+        width_ = source.width_;
+        height_ = source.height_;
+
+        reload_ = source.reload_;
+
+        texture_ = source.texture_;
+
+       direction_ = source.direction_;
+       type_ = source.type_;
+
+       health_ = source.health_;
+       updatePosition_ = source.updatePosition_;
+       fireBullet_ = source.fireBullet_;
+
+	   return *this;
+
+	}
+
+    Entity::Entity(Entity&& source)
+	{
+		xPosition_ = source.xPosition_;
+	    yPosition_ = source.yPosition_;
+        xDelta_ = source.xDelta_;
+        yDelta_ = source.yDelta_;
+
+        width_ = source.width_;
+        height_ = source.height_;
+
+        reload_ = source.reload_;
+
+        texture_ = source.texture_;
+
+       direction_ = source.direction_;
+       type_ = source.type_;
+
+       health_ = source.health_;
+       updatePosition_ = source.updatePosition_;
+       fireBullet_ = source.fireBullet_;
+
+	   	source.xPosition_ = 0.0;
+	    source.yPosition_ = 0.0;
+        source.xDelta_ = 0.0;
+        source.yDelta_ = 0.0;
+        source.width_ = 0;
+        source.height_ = 0;
+        source.reload_ = 0;
+        source.texture_ = NULL;
+	}
+
+    Entity& Entity::operator=(Entity&& source)
+	{
+		if(this == &source)
+			return *this;
+
+		xPosition_ = source.xPosition_;
+	    yPosition_ = source.yPosition_;
+        xDelta_ = source.xDelta_;
+        yDelta_ = source.yDelta_;
+
+        width_ = source.width_;
+        height_ = source.height_;
+
+        reload_ = source.reload_;
+
+        texture_ = source.texture_;
+
+       direction_ = source.direction_;
+       type_ = source.type_;
+
+       health_ = source.health_;
+       updatePosition_ = source.updatePosition_;
+       fireBullet_ = source.fireBullet_;
+
+	   	source.xPosition_ = 0.0;
+	    source.yPosition_ = 0.0;
+        source.xDelta_ = 0.0;
+        source.yDelta_ = 0.0;
+        source.width_ = 0;
+        source.height_ = 0;
+        source.reload_ = 0;
+        source.texture_ = NULL;
+		return *this;
+
+	}
+
+void Entity::UpdatePlayerMoves(SDL_Texture* bulletTexture)
 {
 	if(reload_ > 0)
 	{
@@ -39,14 +173,14 @@ void Entity::updatePlayer(SDL_Texture* bulletTexture)
 
 	if(fireBullet_ && reload_ == 0)
 	{
-		generatePlayerBullet(bulletTexture);
+		GeneratePlayerBullet(bulletTexture);
 	}
 }
 
-void Entity::generatePlayerBullet(SDL_Texture* bulletTexture)
+void Entity::GeneratePlayerBullet(SDL_Texture* bulletTexture)
 {
 	std::unique_ptr<Entity> bullet = std::make_unique<Entity>(this->xPosition_, this->yPosition_, bulletTexture, true, EntityType::kBullet);
-	bullet->setDeltaX(Constant::kPlayerBulletSpeed);
+	bullet->SetDeltaX(Constant::kPlayerBulletSpeed);
 	//SDL_QueryTexture(bullet->texture_, NULL, NULL, &bullet->width_, &bullet->height_);
 	bullet->yPosition_ += (this->height_ / 2) - (bullet->height_ / 2);
 
@@ -54,7 +188,7 @@ void Entity::generatePlayerBullet(SDL_Texture* bulletTexture)
 	bullets_.push_back(std::move(bullet));
 }
 
-void Entity::generateEnimyBullet(SDL_Texture* bulletTexture, Entity* player)
+void Entity::GenerateEnemyBullet(SDL_Texture* bulletTexture, Entity* player)
 {
 	if(--reload_ <= 0)
 	{
@@ -62,7 +196,7 @@ void Entity::generateEnimyBullet(SDL_Texture* bulletTexture, Entity* player)
 		bullet->xPosition_ += (this->width_/ 2) - (bullet->width_ / 2);
 		bullet->yPosition_ += (this->height_ / 2) - (bullet->height_ / 2);
 
-		calcSlope(player->xPosition_ + (player->width_ / 2), player->yPosition_ + (player->height_ / 2), this->xPosition_, 
+		CalculateSlope(player->xPosition_ + (player->width_ / 2), player->yPosition_ + (player->height_ / 2), this->xPosition_, 
 					this->yPosition_, bullet->xDelta_, bullet->yDelta_);
 		
 		bullet->xDelta_ *= Constant::kEnemyBulletSpeed;
@@ -74,7 +208,7 @@ void Entity::generateEnimyBullet(SDL_Texture* bulletTexture, Entity* player)
 
 }
 
-void Entity::calcSlope(int x1, int y1, int x2, int y2, float &dx, float &dy)
+void Entity::CalculateSlope(int x1, int y1, int x2, int y2, float &dx, float &dy)
 {
 	int steps = std::max(abs(x1 - x2), abs(y1 - y2));
 
@@ -91,7 +225,7 @@ void Entity::calcSlope(int x1, int y1, int x2, int y2, float &dx, float &dy)
 	dy /= steps;
 }
 
-void Entity::clipPlayer()
+void Entity::ClipPlayer()
 {
 	if (this->xPosition_ < 0)
 	{

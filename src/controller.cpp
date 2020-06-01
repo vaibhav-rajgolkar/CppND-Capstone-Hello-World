@@ -13,10 +13,26 @@
      audio_ == nullptr;
  }
 
+Controller::Controller(Controller&& source)
+{
+  audio_ = source.audio_;
+  source.audio_ = nullptr;
+}
+
+Controller& Controller::operator=(Controller&& source)
+{
+  if(this == &source)
+    return *this;
+
+  audio_ = source.audio_;
+  source.audio_ = nullptr;
+  return *this;
+}
+
 void Controller::ChangeDirection(Entity* player, Entity::Direction new_direction) const 
 {
-  player->setUpdatePosition(true);
-  if (player->getDirection() != new_direction) player->setDirection(new_direction);
+  player->SetUpdatePosition(true);
+  if (player->GetDirection() != new_direction) player->SetDirection(new_direction);
   return;
 }
 
@@ -49,7 +65,7 @@ void Controller::HandleInput(bool &running , Entity* player) const {
           break;
         
         case SDLK_LCTRL:
-          player->setFireBullet(true);
+          player->SetFireBullet(true);
           audio_->PlaySound(Audio::Sound::kSoundPlayerFire, Audio::Channel::kChannelPlayer);
           break;
       }
@@ -62,11 +78,11 @@ void Controller::HandleInput(bool &running , Entity* player) const {
         case SDLK_DOWN:
         case SDLK_LEFT:
         case SDLK_RIGHT:
-          player->setUpdatePosition(false);
+          player->SetUpdatePosition(false);
           break;
         
         case SDLK_LCTRL:
-          player->setFireBullet(false);
+          player->SetFireBullet(false);
           break;
       }
     }

@@ -12,7 +12,7 @@ Renderer::Renderer()
 }
 
   // Create Window
-  sdl_window_ = SDL_CreateWindow("Space Shoot Game", SDL_WINDOWPOS_UNDEFINED,
+  sdl_window_ = SDL_CreateWindow("Space War Game", SDL_WINDOWPOS_UNDEFINED,
                                 SDL_WINDOWPOS_UNDEFINED, Constant::kScreenWidth,
                                 Constant::kScreenHeight, SDL_WINDOW_SHOWN);
 
@@ -50,6 +50,53 @@ Renderer::~Renderer() {
   SDL_Quit();
 }
 
+Renderer::Renderer(Renderer&& source)
+{
+  backgroundXposition_ = source.backgroundXposition_;
+  sdl_window_ = source.sdl_window_;
+  sdl_renderer_ = source.sdl_renderer_;
+  playerTexture_ = source.playerTexture_;
+  enemyTexture_ = source.enemyTexture_;
+  playerBulletTexture_ = source.playerBulletTexture_;
+  enemyBulletTexture_ = source.enemyBulletTexture_;
+  backGroundTexture_ = source.backGroundTexture_;
+
+  source.backgroundXposition_ = 0;
+  source.sdl_window_ = nullptr;
+  source.sdl_renderer_ = nullptr;
+  source.playerTexture_ = nullptr;
+  source.enemyTexture_ = nullptr;
+  source.playerBulletTexture_ = nullptr;
+  source.enemyBulletTexture_ = nullptr;
+  source.backGroundTexture_ = nullptr;
+}
+
+Renderer& Renderer::operator=(Renderer&& source)
+{
+  if(this == &source)
+    return *this;
+
+  backgroundXposition_ = source.backgroundXposition_;
+  sdl_window_ = source.sdl_window_;
+  sdl_renderer_ = source.sdl_renderer_;
+  playerTexture_ = source.playerTexture_;
+  enemyTexture_ = source.enemyTexture_;
+  playerBulletTexture_ = source.playerBulletTexture_;
+  enemyBulletTexture_ = source.enemyBulletTexture_;
+  backGroundTexture_ = source.backGroundTexture_;
+
+  source.backgroundXposition_ = 0;
+  source.sdl_window_ = nullptr;
+  source.sdl_renderer_ = nullptr;
+  source.playerTexture_ = nullptr;
+  source.enemyTexture_ = nullptr;
+  source.playerBulletTexture_ = nullptr;
+  source.enemyBulletTexture_ = nullptr;
+  source.backGroundTexture_ = nullptr;
+
+  return *this;
+}
+
  void Renderer::RenderBackground() const
 {
   if (--backgroundXposition_ < -Constant::kScreenWidth)
@@ -78,21 +125,21 @@ void Renderer::Render(const Entity* player, const std::vector<std::unique_ptr<En
   RenderBackground();
 
   // Render player
-  Blit(player->getTexture(), player->getXPosition(), player->getYPosition());
+  Blit(player->GetTexture(), player->GetPositionX(), player->GetPositionY());
 
  // Render Bullet
   for(const auto& bullet : player->bullets_)
   {
-    Blit(bullet->getTexture(), bullet->getXPosition(), bullet->getYPosition());
+    Blit(bullet->GetTexture(), bullet->GetPositionX(), bullet->GetPositionY());
   }
 
   // Render Enimies
   for(const auto& enemy : enemies)
   {
-    Blit(enemy->getTexture(), enemy->getXPosition(), enemy->getYPosition());
+    Blit(enemy->GetTexture(), enemy->GetPositionX(), enemy->GetPositionY());
     for(const auto& bullet : enemy->bullets_)
     {
-      Blit(bullet->getTexture(), bullet->getXPosition(), bullet->getYPosition());
+      Blit(bullet->GetTexture(), bullet->GetPositionX(), bullet->GetPositionY());
     }
   }
 
@@ -100,8 +147,8 @@ void Renderer::Render(const Entity* player, const std::vector<std::unique_ptr<En
   SDL_RenderPresent(sdl_renderer_);
 }
 
-void Renderer::UpdateWindowTitle(int score, int fps) const {
-  std::string title{"Score: " + std::to_string(score) + " Constant::kFPS: " + std::to_string(fps)};
+void Renderer::UpdateWindowTitle(int score, int highscore) const {
+  std::string title{"*-- Mission SPACE WAR --*\t\tScore: " + std::to_string(score) + " <<===>> High Score: " + std::to_string(highscore)};
   SDL_SetWindowTitle(sdl_window_, title.c_str());
 }
 
