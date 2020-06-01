@@ -25,17 +25,12 @@ Entity::Entity(const Entity &source)
 	yPosition_ = source.yPosition_;
 	xDelta_ = source.xDelta_;
 	yDelta_ = source.yDelta_;
-
 	width_ = source.width_;
 	height_ = source.height_;
-
 	reload_ = source.reload_;
-
 	texture_ = source.texture_;
-
 	direction_ = source.direction_;
 	type_ = source.type_;
-
 	health_ = source.health_;
 	updatePosition_ = source.updatePosition_;
 	fireBullet_ = source.fireBullet_;
@@ -50,17 +45,12 @@ Entity &Entity::operator=(const Entity &source)
 	yPosition_ = source.yPosition_;
 	xDelta_ = source.xDelta_;
 	yDelta_ = source.yDelta_;
-
 	width_ = source.width_;
 	height_ = source.height_;
-
 	reload_ = source.reload_;
-
 	texture_ = source.texture_;
-
 	direction_ = source.direction_;
 	type_ = source.type_;
-
 	health_ = source.health_;
 	updatePosition_ = source.updatePosition_;
 	fireBullet_ = source.fireBullet_;
@@ -74,17 +64,12 @@ Entity::Entity(Entity &&source)
 	yPosition_ = source.yPosition_;
 	xDelta_ = source.xDelta_;
 	yDelta_ = source.yDelta_;
-
 	width_ = source.width_;
 	height_ = source.height_;
-
 	reload_ = source.reload_;
-
 	texture_ = source.texture_;
-
 	direction_ = source.direction_;
 	type_ = source.type_;
-
 	health_ = source.health_;
 	updatePosition_ = source.updatePosition_;
 	fireBullet_ = source.fireBullet_;
@@ -108,17 +93,12 @@ Entity &Entity::operator=(Entity &&source)
 	yPosition_ = source.yPosition_;
 	xDelta_ = source.xDelta_;
 	yDelta_ = source.yDelta_;
-
 	width_ = source.width_;
 	height_ = source.height_;
-
 	reload_ = source.reload_;
-
 	texture_ = source.texture_;
-
 	direction_ = source.direction_;
 	type_ = source.type_;
-
 	health_ = source.health_;
 	updatePosition_ = source.updatePosition_;
 	fireBullet_ = source.fireBullet_;
