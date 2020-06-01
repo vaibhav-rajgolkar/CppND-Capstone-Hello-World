@@ -1,10 +1,10 @@
 #include "audio.h"
 
 Audio::Audio()
-:sounds_(static_cast<int>(Audio::Sound::kSoundMax)),
-music_(NULL)
+	: sounds_(static_cast<int>(Audio::Sound::kSoundMax)),
+	  music_(NULL)
 {
-    if (Mix_OpenAudio(44100, MIX_DEFAULT_FORMAT, 2, 1024) == -1)
+	if (Mix_OpenAudio(44100, MIX_DEFAULT_FORMAT, 2, 1024) == -1)
 	{
 		printf("Couldn't initialize SDL Mixer\n");
 		exit(1);
@@ -12,13 +12,13 @@ music_(NULL)
 
 	Mix_AllocateChannels(8);
 
-    InitSounds();
+	InitSounds();
 }
 
 Audio::~Audio()
 {
-    sounds_.erase(sounds_.begin(), sounds_.end());
-    if (music_ != NULL)
+	sounds_.erase(sounds_.begin(), sounds_.end());
+	if (music_ != NULL)
 	{
 		Mix_HaltMusic();
 		Mix_FreeMusic(music_);
@@ -26,24 +26,23 @@ Audio::~Audio()
 	}
 }
 
-Audio::Audio(Audio&& source)
-: sounds_(std::move(sounds_))
+Audio::Audio(Audio &&source)
+	: sounds_(std::move(sounds_))
 {
-    music_ = source.music_;
-    source.music_ = nullptr;
+	music_ = source.music_;
+	source.music_ = nullptr;
 }
 
-Audio& Audio::operator=(Audio&& source)
+Audio &Audio::operator=(Audio &&source)
 {
-    if(this == &source)
-        return *this;
-        
-    sounds_ = std::move(source.sounds_);
-    music_ = source.music_;
-    source.music_ = nullptr;
-    return *this;
-}
+	if (this == &source)
+		return *this;
 
+	sounds_ = std::move(source.sounds_);
+	music_ = source.music_;
+	source.music_ = nullptr;
+	return *this;
+}
 
 void Audio::LoadSounds()
 {
@@ -54,12 +53,12 @@ void Audio::LoadSounds()
 }
 
 void Audio::InitSounds()
-{	
+{
 	LoadSounds();
-    LoadMusic("../music/Mercury.ogg");
+	LoadMusic("../music/Mercury.ogg");
 }
 
-void Audio::LoadMusic(const std::string& filename)
+void Audio::LoadMusic(const std::string &filename)
 {
 	if (music_ != NULL)
 	{

@@ -10,18 +10,29 @@
 class Entity
 {
 public:
+    enum class Direction
+    {
+        kUp,
+        kDown,
+        kLeft,
+        kRight
+    };
+    enum class EntityType
+    {
+        kPlayer,
+        kEnimy,
+        kBullet,
+        kInvalid
+    };
 
-    enum class Direction { kUp, kDown, kLeft, kRight };
-    enum class EntityType { kPlayer, kEnimy, kBullet, kInvalid};
-
-    Entity(int x, int y, SDL_Texture* texture, bool health, EntityType type);
+    Entity(int x, int y, SDL_Texture *texture, bool health, EntityType type);
     ~Entity();
 
-    Entity(const Entity& source);
-    Entity& operator=(const Entity& source);
+    Entity(const Entity &source);
+    Entity &operator=(const Entity &source);
 
-    Entity(Entity&& source);
-    Entity& operator=(Entity&& source);
+    Entity(Entity &&source);
+    Entity &operator=(Entity &&source);
 
     // getters
     float GetPositionX() const { return xPosition_; }
@@ -30,7 +41,7 @@ public:
     float GetDeltaY() const { return yDelta_; }
     int GetWidth() const { return width_; }
     int GetHeight() const { return height_; }
-    SDL_Texture* GetTexture() const { return texture_; }
+    SDL_Texture *GetTexture() const { return texture_; }
     Direction GetDirection() const { return direction_; }
     bool IsEntityAlive() const { return health_; }
     EntityType GetEntityType() const { return type_; }
@@ -46,16 +57,16 @@ public:
 
     // utility
     void ClipPlayer();
-    void UpdatePlayerMoves(SDL_Texture* bulletTexture);
-    void GeneratePlayerBullet(SDL_Texture* bulletTexture);
+    void UpdatePlayerMoves(SDL_Texture *bulletTexture);
+    void GeneratePlayerBullet(SDL_Texture *bulletTexture);
     std::vector<std::unique_ptr<Entity>> bullets_{};
 
-    void GenerateEnemyBullet(SDL_Texture* bulletTexture, Entity* player);
+    void GenerateEnemyBullet(SDL_Texture *bulletTexture, Entity *player);
     void CalculateSlope(int x1, int y1, int x2, int y2, float &dx, float &dy);
 
 private:
     float xPosition_;
-	float yPosition_;
+    float yPosition_;
     float xDelta_;
     float yDelta_;
 
@@ -64,10 +75,10 @@ private:
 
     int reload_{0};
 
-    SDL_Texture* texture_;
+    SDL_Texture *texture_;
 
-    Direction direction_{ Direction::kUp };
-    EntityType type_{ EntityType::kInvalid };
+    Direction direction_{Direction::kUp};
+    EntityType type_{EntityType::kInvalid};
 
     bool health_{false};
     bool updatePosition_{false};
