@@ -10,7 +10,8 @@
 namespace
 {
     constexpr int PLAYER_SPEED = 4;
-    constexpr int BULLET_SPEED = 16;
+    constexpr int PLAYER_BULLET_SPEED = 16;
+    constexpr int ENIMY_BULLET_SPEED = 8;
     constexpr int SCREEN_WIDTH = 1280;
 }
 class Player
@@ -36,6 +37,8 @@ public:
     float getYPosition() const { return yPosition_; }
     float getDeltaX() const { return xDelta_; }
     float getDeltaY() const { return yDelta_; }
+    int getWidth() const { return width_; }
+    int getHeight() const { return height_; }
     SDL_Texture* getTexture() const { return texture_; }
     Direction getDirection() const { return direction_; }
     bool getHealth() const { return health_; }
@@ -52,7 +55,6 @@ public:
 
     void updatePlayer(SDL_Texture* bulletTexture);
     void generateBullet(SDL_Texture* bulletTexture);
-    void fireBullets();
     std::vector<std::unique_ptr<Player>> bullets_{};
 
 private:

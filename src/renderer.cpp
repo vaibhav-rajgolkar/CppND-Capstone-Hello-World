@@ -50,13 +50,13 @@ Renderer::~Renderer() {
   SDL_Quit();
 }
 
-void Renderer::Render(Player* player) {
+void Renderer::Render(Player* player, const std::vector<std::unique_ptr<Player>>& enemies) {
   SDL_Rect block;
   block.w = screen_width / grid_width;
   block.h = screen_height / grid_height;
 
   // Clear screen
-  SDL_SetRenderDrawColor(sdl_renderer, 96, 128, 255, 255/* 0x1E, 0x1E, 0x1E, 0xFF */);
+  SDL_SetRenderDrawColor(sdl_renderer, /* 96, 128, 255, 255 */0x1E, 0x1E, 0x1E, 0xFF);
   SDL_RenderClear(sdl_renderer);
 
   // Render player
@@ -66,6 +66,12 @@ void Renderer::Render(Player* player) {
   for(const auto& bullet : player->bullets_)
   {
     blit(bullet->getTexture(), bullet->getXPosition(), bullet->getYPosition());
+  }
+
+  // Render Enimies
+  for(const auto& enemy : enemies)
+  {
+    blit(enemy->getTexture(), enemy->getXPosition(), enemy->getYPosition());
   }
 
   // Update Screen
@@ -84,7 +90,7 @@ void Renderer::blit(SDL_Texture *texture, int x, int y)
 	dest.x = x;
 	dest.y = y;
 	int retval = SDL_QueryTexture(texture, NULL, NULL, &dest.w, &dest.h);
-	
+  //std::cout<<"Blit : "<<retval<<" : "<<SDL_GetError()<<std::endl;
 	SDL_RenderCopy(sdl_renderer, texture, NULL, &dest);
 }
 

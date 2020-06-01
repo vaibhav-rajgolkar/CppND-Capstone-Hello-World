@@ -1,12 +1,11 @@
 #include "game.h"
 #include <iostream>
+#include <algorithm>
 #include "SDL.h"
 
-Game::Game(std::size_t grid_width, std::size_t grid_height)
-    : engine(dev()),
-      random_w(0, static_cast<int>(grid_width)),
-      random_h(0, static_cast<int>(grid_height)) 
-      { }
+Game::Game()
+{
+}
 
 Game::~Game()
 {
@@ -29,7 +28,7 @@ void Game::Run(Controller const &controller, Renderer &renderer,
     // Input, Update, Render - the main game loop.
     controller.HandleInput(running, player.get());
     Update(renderer);
-    renderer.Render(player.get());
+    renderer.Render(player.get(), enimies_);
 
     frame_end = SDL_GetTicks();
 
@@ -55,11 +54,95 @@ void Game::Run(Controller const &controller, Renderer &renderer,
 }
 
 void Game::Update(Renderer &renderer) {
-   if (!player->getHealth()) return;
+  if (!player->getHealth()) 
+    return;
 
   player->updatePlayer(renderer.getPlayerBulletTexture());
-  player->fireBullets();
+  fireBullets();
+
+  UpdateEnimies();
+  SpawnEnimies(renderer);
+}
+
+void Game::UpdateEnimies()
+{
+  for(auto& enimy : enimies_)
+  {
+    enimy->setPositionX(enimy->getXPosition() + enimy->getDeltaX());
+    enimy->setPositionY(enimy->getYPosition() + enimy->getDeltaY());
+  }
+  // Delete bullet objects which crosses screen
+	enimies_.erase(
+        std::remove_if( // Selectively remove elements in the second vector...
+            enimies_.begin(),
+            enimies_.end(),
+            [&] (std::unique_ptr<Player> const& enimy)
+            {   
+                return (enimy->getXPosition() < enimy->getWidth() || enimy->getHealth() == 0);
+            }),
+        enimies_.end()
+        );
+
+}
+
+void Game::fireBullets()
+{
+	for(auto& bullet : player->bullets_)
+	{
+		bullet->setPositionX(bullet->getXPosition() + bullet->getDeltaX());
+    bullet->setPositionY(bullet->getYPosition() + bullet->getDeltaY());
+	}
+
+	// Delete bullet objects which crosses screen
+	player->bullets_.erase(
+        std::remove_if( // Selectively remove elements in the second vector...
+            player->bullets_.begin(),
+            player->bullets_.end(),
+            [&] (std::unique_ptr<Player> const& p)
+            {   
+                return (p->getXPosition() > SCREEN_WIDTH || IsBulletHitEnimy(p.get()));
+            }),
+        player->bullets_.end()
+        );
+}
+
+bool Game::IsBulletHitEnimy(Player* bullet)
+{
+  for(auto& enimy : enimies_)
+  {
+    if(Collision(bullet->getXPosition(), bullet->getYPosition(), bullet->getWidth(), bullet->getHeight(), 
+                    enimy->getXPosition(), enimy->getYPosition(), enimy->getWidth(), enimy->getHeight()))
+    {
+      bullet->setHealth(false);
+      enimy->setHealth(false);
+      score++;
+      return true;
+    }
+  }
+  return false;
+}
+
+
+void Game::SpawnEnimies(Renderer &renderer)
+{
+  if (--enemySpawnTimer_ <= 0)
+	{
+    std::random_device dev;
+    std::mt19937 engine(dev());
+    std::uniform_int_distribution<int> randomHeightGenerator(0, 720);
+    std::uniform_int_distribution<int> randomGenerator(0, 90);
+  
+    std::unique_ptr<Player> enemy = std::make_unique<Player>(1280, randomHeightGenerator(engine), renderer.getEnemyTexture(), true);
+		enemy->setDeltaX(-(1 + (rand() % 2)));
+    enimies_.push_back(std::move(enemy));
+
+    enemySpawnTimer_ = 30 + randomGenerator(engine);
+	}
+}
+
+int Game::Collision(int x1, int y1, int w1, int h1, int x2, int y2, int w2, int h2)
+{
+	return (std::max(x1, x2) < std::min(x1 + w1, x2 + w2)) && (std::max(y1, y2) < std::min(y1 + h1, y2 + h2));
 }
 
 int Game::GetScore() const { return score; }
-int Game::GetSize() const { return 0; }

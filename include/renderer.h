@@ -12,7 +12,7 @@ class Renderer {
            const std::size_t grid_width, const std::size_t grid_height);
   ~Renderer();
 
-  void Render(Player* player);
+  void Render(Player* player, const std::vector<std::unique_ptr<Player>>& enemies);
   void UpdateWindowTitle(int score, int fps);
   void blit(SDL_Texture *texture, int x, int y);
   SDL_Texture *loadTexture(std::string filename);
