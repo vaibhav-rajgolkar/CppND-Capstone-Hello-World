@@ -3,44 +3,42 @@
 
 #include "SDL.h"
 #include "SDL2/SDL_image.h"
-#include "player.h"
+#include "entity.h"
 
 
 class Renderer {
  public:
-  Renderer(const std::size_t screen_width, const std::size_t screen_height,
-           const std::size_t grid_width, const std::size_t grid_height);
+  Renderer();
   ~Renderer();
 
-  void Render(Player* player, const std::vector<std::unique_ptr<Player>>& enemies);
-  void UpdateWindowTitle(int score, int fps);
-  void blit(SDL_Texture *texture, int x, int y);
-  SDL_Texture *loadTexture(std::string filename);
-  
+ // Disable copy construction and assignment operation
+  Renderer(const Renderer& source) = delete;
+  Renderer& operator=(const Renderer& source) = delete;
 
-  SDL_Renderer* getSdlRenderer() const { return sdl_renderer; }
-  std::size_t getScreenWidth() const { return screen_width; }
-  std::size_t getScreenHeight() const { return screen_height; }
+  void Render(const Entity* player, const std::vector<std::unique_ptr<Entity>>& enemies) const;
+  void UpdateWindowTitle(int score, int fps) const;
 
-  SDL_Texture* getPlayerTexture() const { return playerTexture_; }
-  SDL_Texture* getEnemyTexture() const { return enimyTexture_; }
-  SDL_Texture* getPlayerBulletTexture() const { return pBulletTexture_; }
-  SDL_Texture* getEnemyBulletTexture() const { return eBulletTexture_; }
-
+  // getters
+  SDL_Texture* GetPlayerTexture() const { return playerTexture_; }
+  SDL_Texture* GetEnemyTexture() const { return enemyTexture_; }
+  SDL_Texture* GetPlayerBulletTexture() const { return playerBulletTexture_; }
+  SDL_Texture* GetEnemyBulletTexture() const { return enemyBulletTexture_; }
 
  private:
-  SDL_Window *sdl_window;
-  SDL_Renderer *sdl_renderer;
+  mutable int backgroundXposition_{0};
+
+  SDL_Window *sdl_window_;
+  SDL_Renderer *sdl_renderer_;
 
   SDL_Texture* playerTexture_;
-  SDL_Texture* enimyTexture_;
-  SDL_Texture* pBulletTexture_;
-  SDL_Texture* eBulletTexture_;
+  SDL_Texture* enemyTexture_;
+  SDL_Texture* playerBulletTexture_;
+  SDL_Texture* enemyBulletTexture_;
+  SDL_Texture* backGroundTexture_;
 
-  const std::size_t screen_width;
-  const std::size_t screen_height;
-  const std::size_t grid_width;
-  const std::size_t grid_height;
+    void RenderBackground() const;
+      void Blit(SDL_Texture *texture, int x, int y) const;
+      SDL_Texture *LoadTexture(std::string filename) const;
 };
 
 #endif

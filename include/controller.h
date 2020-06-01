@@ -1,13 +1,25 @@
 #ifndef CONTROLLER_H
 #define CONTROLLER_H
-#include "player.h"
+
+#include "entity.h"
+#include "audio.h"
 
 class Controller {
  public:
-  void HandleInput(bool &running, Player* player) const;
+  Controller(const Audio* audio);
+  ~Controller();
+
+  // Disable copy construction and assignment
+  Controller(const Controller& source) = delete;
+  Controller& operator=(const Controller& source) = delete;
+
+  void HandleInput(bool& running, Entity* player) const;
 
  private:
-    void ChangeDirection(Player* player, Player::Direction newDirection) const;
+    const Audio* audio_{nullptr};
+
+    void ChangeDirection(Entity* player, Entity::Direction new_direction) const;
+
 };
 
 #endif

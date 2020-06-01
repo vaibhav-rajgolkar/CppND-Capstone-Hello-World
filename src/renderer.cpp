@@ -1,25 +1,22 @@
 #include <iostream>
+#include "constants.h"
 #include "renderer.h"
+#include "SDL2/SDL_mixer.h"
 
-Renderer::Renderer(const std::size_t screen_width,
-                   const std::size_t screen_height,
-                   const std::size_t grid_width, const std::size_t grid_height)
-    : screen_width(screen_width),
-      screen_height(screen_height),
-      grid_width(grid_width),
-      grid_height(grid_height) {
+Renderer::Renderer()
+{
   // Initialize SDL
   if (SDL_Init(SDL_INIT_VIDEO) < 0) {
     std::cerr << "SDL could not initialize.\n";
     std::cerr << "SDL_Error: " << SDL_GetError() << "\n";
-  }
+}
 
   // Create Window
-  sdl_window = SDL_CreateWindow("Space Shoot Game", SDL_WINDOWPOS_UNDEFINED,
-                                SDL_WINDOWPOS_UNDEFINED, screen_width,
-                                screen_height, SDL_WINDOW_SHOWN);
+  sdl_window_ = SDL_CreateWindow("Space Shoot Game", SDL_WINDOWPOS_UNDEFINED,
+                                SDL_WINDOWPOS_UNDEFINED, Constant::kScreenWidth,
+                                Constant::kScreenHeight, SDL_WINDOW_SHOWN);
 
-  if (nullptr == sdl_window) {
+  if (nullptr == sdl_window_) {
     std::cerr << "Window could not be created.\n";
     std::cerr << " SDL_Error: " << SDL_GetError() << "\n";
   }
@@ -27,63 +24,88 @@ Renderer::Renderer(const std::size_t screen_width,
   SDL_SetHint(SDL_HINT_RENDER_SCALE_QUALITY, "linear");
 
   // Create renderer
-  sdl_renderer = SDL_CreateRenderer(sdl_window, -1, SDL_RENDERER_ACCELERATED);
-  if (nullptr == sdl_renderer) {
+  sdl_renderer_ = SDL_CreateRenderer(sdl_window_, -1, SDL_RENDERER_ACCELERATED);
+  if (nullptr == sdl_renderer_) {
     std::cerr << "Renderer could not be created.\n";
     std::cerr << "SDL_Error: " << SDL_GetError() << "\n";
   }
 
-  playerTexture_ = loadTexture("../graphics/player.png");
-  enimyTexture_ = loadTexture("../graphics/enemy.png");
-  pBulletTexture_ = loadTexture("../graphics/playerBullet.png");
-  eBulletTexture_ = loadTexture("../graphics/alienBullet.png");
+  playerTexture_ = LoadTexture("../graphics/player.png");
+  enemyTexture_ = LoadTexture("../graphics/enemy.png");
+  playerBulletTexture_ = LoadTexture("../graphics/playerBullet.png");
+  enemyBulletTexture_ = LoadTexture("../graphics/alienBullet.png");
+  backGroundTexture_ = LoadTexture("../graphics/background.png");
+
 
   IMG_Init(IMG_INIT_PNG | IMG_INIT_JPG);
 }
 
 Renderer::~Renderer() {
   SDL_DestroyTexture(playerTexture_);
-  SDL_DestroyTexture(enimyTexture_);
-  SDL_DestroyTexture(pBulletTexture_);
-  SDL_DestroyTexture(eBulletTexture_);
-  SDL_DestroyWindow(sdl_window);
+  SDL_DestroyTexture(enemyTexture_);
+  SDL_DestroyTexture(playerBulletTexture_);
+  SDL_DestroyTexture(enemyBulletTexture_);
+  SDL_DestroyTexture(backGroundTexture_);
+  SDL_DestroyWindow(sdl_window_);
   SDL_Quit();
 }
 
-void Renderer::Render(Player* player, const std::vector<std::unique_ptr<Player>>& enemies) {
-  SDL_Rect block;
-  block.w = screen_width / grid_width;
-  block.h = screen_height / grid_height;
+ void Renderer::RenderBackground() const
+{
+  if (--backgroundXposition_ < -Constant::kScreenWidth)
+	{
+		backgroundXposition_ = 0;
+	}
 
+	for (int x = backgroundXposition_ ; x < static_cast<int>(Constant::kScreenWidth) ; x += Constant::kScreenWidth)
+	{
+    SDL_Rect dest;
+		dest.x = x;
+		dest.y = 0;
+		dest.w = Constant::kScreenWidth;
+		dest.h = Constant::kScreenHeight;
+		SDL_RenderCopy(sdl_renderer_, backGroundTexture_, NULL, &dest);
+	}
+}
+
+void Renderer::Render(const Entity* player, const std::vector<std::unique_ptr<Entity>>& enemies) const 
+{
   // Clear screen
-  SDL_SetRenderDrawColor(sdl_renderer, /* 96, 128, 255, 255 */0x1E, 0x1E, 0x1E, 0xFF);
-  SDL_RenderClear(sdl_renderer);
+  SDL_SetRenderDrawColor(sdl_renderer_, /* 96, 128, 255, 255 */0x1E, 0x1E, 0x1E, 0xFF);
+  SDL_RenderClear(sdl_renderer_);
+
+  // Render Background
+  RenderBackground();
 
   // Render player
-  blit(player->getTexture(), player->getXPosition(), player->getYPosition());
+  Blit(player->getTexture(), player->getXPosition(), player->getYPosition());
 
  // Render Bullet
   for(const auto& bullet : player->bullets_)
   {
-    blit(bullet->getTexture(), bullet->getXPosition(), bullet->getYPosition());
+    Blit(bullet->getTexture(), bullet->getXPosition(), bullet->getYPosition());
   }
 
   // Render Enimies
   for(const auto& enemy : enemies)
   {
-    blit(enemy->getTexture(), enemy->getXPosition(), enemy->getYPosition());
+    Blit(enemy->getTexture(), enemy->getXPosition(), enemy->getYPosition());
+    for(const auto& bullet : enemy->bullets_)
+    {
+      Blit(bullet->getTexture(), bullet->getXPosition(), bullet->getYPosition());
+    }
   }
 
   // Update Screen
-  SDL_RenderPresent(sdl_renderer);
+  SDL_RenderPresent(sdl_renderer_);
 }
 
-void Renderer::UpdateWindowTitle(int score, int fps) {
-  std::string title{"Score: " + std::to_string(score) + " FPS: " + std::to_string(fps)};
-  SDL_SetWindowTitle(sdl_window, title.c_str());
+void Renderer::UpdateWindowTitle(int score, int fps) const {
+  std::string title{"Score: " + std::to_string(score) + " Constant::kFPS: " + std::to_string(fps)};
+  SDL_SetWindowTitle(sdl_window_, title.c_str());
 }
 
-void Renderer::blit(SDL_Texture *texture, int x, int y)
+void Renderer::Blit(SDL_Texture *texture, int x, int y) const
 {
 	SDL_Rect dest;
 	
@@ -91,16 +113,16 @@ void Renderer::blit(SDL_Texture *texture, int x, int y)
 	dest.y = y;
 	int retval = SDL_QueryTexture(texture, NULL, NULL, &dest.w, &dest.h);
   //std::cout<<"Blit : "<<retval<<" : "<<SDL_GetError()<<std::endl;
-	SDL_RenderCopy(sdl_renderer, texture, NULL, &dest);
+	SDL_RenderCopy(sdl_renderer_, texture, NULL, &dest);
 }
 
-SDL_Texture *Renderer::loadTexture(std::string filename)
+SDL_Texture *Renderer::LoadTexture(std::string filename) const
 {
 	SDL_Texture *texture;
 
 	SDL_LogMessage(SDL_LOG_CATEGORY_APPLICATION, SDL_LOG_PRIORITY_INFO, "Loading %s", filename.c_str());
 
-	texture = IMG_LoadTexture(sdl_renderer, filename.c_str());
+	texture = IMG_LoadTexture(sdl_renderer_, filename.c_str());
 
 	return texture;
 }

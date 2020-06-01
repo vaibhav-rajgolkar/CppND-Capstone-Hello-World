@@ -1,5 +1,5 @@
-#ifndef PLAYER_H
-#define PLAYER_H
+#ifndef ENTITY_H
+#define ENTITY_H
 
 #include <string>
 #include <memory>
@@ -7,32 +7,30 @@
 #include "SDL.h"
 #include <iostream>
 
-namespace
-{
-    constexpr int PLAYER_SPEED = 4;
-    constexpr int PLAYER_BULLET_SPEED = 16;
-    constexpr int ENIMY_BULLET_SPEED = 8;
-    constexpr int SCREEN_WIDTH = 1280;
-}
-class Player
+class Entity
 {
 public:
 
     enum class Direction { kUp, kDown, kLeft, kRight };
+    enum class EntityType { kPlayer, kEnimy, kBullet, kInvalid};
 
-    Player(int x, int y, SDL_Texture* texture, bool health)
+    Entity(int x, int y, SDL_Texture* texture, bool health, EntityType type)
     :xPosition_(x),
     yPosition_(y),
     texture_(texture),
-    health_(health)
+    health_(health),
+    type_(type)
     {
         SDL_QueryTexture(this->texture_, NULL, NULL, &this->width_, &this->height_);
     }
 
-    ~Player() 
+    ~Entity() 
     {
+        bullets_.erase(bullets_.begin(), bullets_.end());
+        texture_ = NULL;
     }
 
+    // getters
     float getXPosition() const { return xPosition_; }
     float getYPosition() const { return yPosition_; }
     float getDeltaX() const { return xDelta_; }
@@ -42,20 +40,25 @@ public:
     SDL_Texture* getTexture() const { return texture_; }
     Direction getDirection() const { return direction_; }
     bool getHealth() const { return health_; }
-    bool isBulletFired() const { return fireBullet_; }
+    EntityType getEntityType() const { return type_; }
 
+    // setters
     void setPositionX(float x) { xPosition_ = x; }
     void setPositionY(float y) { yPosition_ = y; }
     void setDeltaX(float x) { xDelta_ = x; }
-    void setDeltaY(float y) { yDelta_ = y; }
     void setHealth(bool health) { health_ = health; }
     void setDirection(Direction dir) { direction_ = dir; }
     void setUpdatePosition(bool flag) { updatePosition_ = flag; }
     void setFireBullet(bool flag) { fireBullet_ = flag; }
 
+    // utility
+    void clipPlayer();
     void updatePlayer(SDL_Texture* bulletTexture);
-    void generateBullet(SDL_Texture* bulletTexture);
-    std::vector<std::unique_ptr<Player>> bullets_{};
+    void generatePlayerBullet(SDL_Texture* bulletTexture);
+    std::vector<std::unique_ptr<Entity>> bullets_{};
+
+    void generateEnimyBullet(SDL_Texture* bulletTexture, Entity* player);
+    void calcSlope(int x1, int y1, int x2, int y2, float &dx, float &dy);
 
 private:
     float xPosition_;
@@ -70,11 +73,12 @@ private:
 
     SDL_Texture* texture_;
 
-    Direction direction_ = Direction::kUp;
+    Direction direction_{ Direction::kUp };
+    EntityType type_{ EntityType::kInvalid };
 
     bool health_{false};
     bool updatePosition_{false};
     bool fireBullet_{false};
 };
 
-#endif //PLAYER_H
+#endif //ENTITY_H
